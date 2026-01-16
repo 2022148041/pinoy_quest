@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Quests: The Game 🏆</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333; min-height: 100vh; margin: 0; padding: 15px;
+            display: flex; justify-content: center; align-items: flex-start;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.96);
+            width: 100%; max-width: 450px;
+            padding: 25px; border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center; margin-top: 20px;
+        }
+
+        h1 { margin: 0 0 5px 0; color: #2d3436; font-size: 1.6em; }
+        .subtitle { color: #636e72; font-size: 0.85em; margin-bottom: 20px; }
+
+        /* --- CHARACTER GRID --- */
+        .char-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            margin-bottom: 25px;
+        }
+        .char-btn {
+            background: #f1f2f6; border: 2px solid #dfe6e9;
+            border-radius: 15px; padding: 10px 5px; cursor: pointer;
+            transition: all 0.2s; position: relative;
+        }
+        .char-btn.active { border-color: #6c5ce7; background: #e0dcfc; transform: scale(1.05); }
+        .char-icon { font-size: 1.5em; display: block; margin-bottom: 5px; }
+        .char-name { font-size: 0.7em; font-weight: bold; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .char-score { 
+            position: absolute; top: -5px; right: -5px; 
+            background: #ff7675; color: white; font-size: 0.7em; 
+            width: 20px; height: 20px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+        }
+
+        /* --- PASSWORD MODAL --- */
+        #passwordArea { margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 15px; border: 1px solid #dfe6e9; }
+        input[type="password"] {
+            width: 100%; padding: 12px; border: 2px solid #dfe6e9; border-radius: 10px;
+            font-size: 1em; text-align: center; margin-bottom: 10px; outline: none;
+        }
+        input[type="password"]:focus { border-color: #6c5ce7; }
+
+        /* --- MAIN MISSION CARD --- */
+        .main-mission-section { text-align: left; background: #fff0f0; border: 2px solid #ff7675; border-radius: 15px; padding: 15px; margin-bottom: 20px; position: relative; }
+        .mm-header { font-size: 0.9em; font-weight: 800; color: #d63031; text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .mm-task { font-size: 1em; font-weight: 600; margin-bottom: 10px; line-height: 1.4; }
+        
+        /* --- SIDE QUEST CARD --- */
+        .quest-card {
+            background: #fff; border-radius: 15px;
+            padding: 20px; min-height: 150px;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            margin-bottom: 20px; border: 2px dashed #b2bec3;
+            position: relative;
+        }
+        .quest-title { font-size: 1.3em; font-weight: 800; color: #6c5ce7; margin-bottom: 10px; text-transform: uppercase; }
+        .quest-desc { font-size: 1em; line-height: 1.4; color: #555; }
+        .status-badge {
+            background: #ffeaa7; color: #d63031; font-size: 0.7em;
+            padding: 5px 10px; border-radius: 20px; font-weight: bold;
+            margin-bottom: 10px; text-transform: uppercase;
+        }
+
+        /* --- BUTTONS --- */
+        .btn {
+            border: none; padding: 15px; width: 100%; font-size: 1em;
+            border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 10px;
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background-color: #6c5ce7; color: white; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3); }
+        .btn-success { background-color: #00b894; color: white; box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3); }
+        .btn-danger { background-color: #d63031; color: white; }
+        .btn-outline { background: transparent; border: 2px solid #b2bec3; color: #636e72; }
+        .btn-gold { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); color: white; box-shadow: 0 4px 10px rgba(243, 156, 18, 0.4); }
+
+        /* --- LEADERBOARD --- */
+        .leaderboard { text-align: left; background: #f8f9fa; padding: 15px; border-radius: 15px; margin-top: 30px; }
+        .lb-title { font-size: 0.9em; text-transform: uppercase; color: #b2bec3; font-weight: bold; margin-bottom: 10px; }
+        .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dfe6e9; font-size: 0.9em; }
+        .lb-row:last-child { border-bottom: none; }
+        .lb-name { font-weight: 600; }
+
+        .hidden { display: none !important; }
+        .utility-link { color: #b2bec3; font-size: 0.7em; text-decoration: none; margin-top: 20px; display: inline-block; cursor: pointer;}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🏆 Trip Quests</h1>
+        <p class="subtitle" id="mainStatus">Select your character</p>
+
+        <div class="char-grid" id="charGrid"></div>
+
+        <div id="passwordArea" class="hidden">
+            <p>Enter Password for <strong id="pwCharName">...</strong></p>
+            <input type="password" id="pwInput" placeholder="Passcode">
+            <button class="btn btn-primary" onclick="checkPassword()">Unlock Profile 🔓</button>
+            <button class="btn btn-outline" onclick="goBack()">Cancel</button>
+        </div>
+
+        <div id="gameArea" class="hidden">
+            
+            <div id="mainMissionDisplay">
+            </div>
+
+            <hr style="border:0; border-top: 1px solid #eee; margin: 20px 0;">
+            <p class="subtitle">👇 Random Side Missions 👇</p>
+
+            <div class="quest-card">
+                <div id="activeMissionUI" class="hidden">
+                    <div class="status-badge">Side Mission Active</div>
+                    <div class="quest-title" id="qTitle">...</div>
+                    <div class="quest-desc" id="qDesc">...</div>
+                </div>
+
+                <div id="noMissionUI">
+                    <div class="quest-title" style="color:#b2bec3">Ready?</div>
+                    <div class="quest-desc">Pull a random side quest!</div>
+                </div>
+            </div>
+
+            <div id="actionButtons">
+                <button class="btn btn-primary" id="btnDraw" onclick="drawMission()">🎲 Get Random Mission</button>
+                <button class="btn btn-success hidden" id="btnComplete" onclick="completeMission()">✅ Side Mission Complete (+1)</button>
+                <button class="btn btn-outline hidden" id="btnSkip" onclick="skipMission()">🏳️ Skip</button>
+            </div>
+            
+            <button class="btn btn-outline" style="margin-top:20px; border:none; font-size:0.8em" onclick="goBack()">⬅️ Logout</button>
+        </div>
+
+        <div class="leaderboard">
+            <div class="lb-title">🏆 Leaderboard</div>
+            <div id="lbList"></div>
+        </div>
+
+        <div class="utility-link" onclick="hardReset()">Reset All Data</div>
+    </div>
+
+    <script>
+        // ******************************************************
+        // ✅ CONFIGURATION
+        // ******************************************************
+        const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSz6PuMPKC6l3pyXFJI5S8HwRIBMOcwj_ZUez0ifEjJz7Ft5PKsUSZ4XRarDIC8kg-nHEgylWqUpRa8/pub?output=csv"; 
+        const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdclxkCaS0FrMSrCfoGw1-8GL3BDA_qIk6AN8snL_goq49YYw/formResponse";
+        const entryName = "entry.534702092"; 
+        const entryQuest = "entry.650581964";
+
+        const characters = [
+            { id: "c1", name: "Roma", icon: "🦁" },
+            { id: "c2", name: "Heaven", icon: "🐨" },
+            { id: "c3", name: "Yuvaan", icon: "🤡" }, 
+            { id: "c4", name: "Eddy", icon: "🍔" },
+            { id: "c5", name: "Yuki", icon: "🧩" },
+            { id: "c6", name: "Sneghaa", icon: "😴" },
+            { id: "c7", name: "Sarvina", icon: "💰" }
+        ];
+
+        // MAIN MISSIONS DATABASE
+        const mainMissions = [
+            { name: 'Heaven', pw: 'heaven1234', target: 'Roma', task: 'Make your target to race with you thrice throughout the trip. Can be ANYWHERE!' },
+            { name: 'Roma', pw: 'roma1111', target: 'Eddy', task: "You must pat your Target hard on the back once every day. Don't kill the boi!" },
+            { name: 'Eddy', pw: 'eddy0000', target: 'Yuki', task: 'You must record a short video of your target answering a "Question of the Day" every day.' },
+            { name: 'Sneghaa', pw: 'sneghaa4321', target: 'Heaven', task: 'Make a 3-step dab with your target every single day. The 3-step can vary.' },
+            { name: 'Yuki', pw: 'yukichan', target: 'Sarvina', task: 'You must physically "fix" your Target’s appearance once every day.' },
+            { name: 'Sarvina', pw: 'sarvinavina', target: 'Sneghaa', task: 'Make your target to point to the sky and take picture of them once every day.' },
+            { name: 'Yuvaan', pw: 'gommale', target: 'Single', task: 'நாட்குறிப்பில் நூறு தடவை, உந்தன் பெயரை எழுதும் என் பேனா?\nஎழுதியதும் எறும்பு மொய்க்க, பெயரும் ஆனதென்ன தேனா?' }
+        ];
+
+        // ******************************************************
+        
+        let allQuests = [];
+        let currentPlayer = null;
+        let gameState = {}; 
+
+        window.onload = async function() {
+            try {
+                const res = await fetch(sheetURL);
+                const data = await res.text();
+                parseCSV(data);
+                document.getElementById('mainStatus').innerText = "Select your character";
+            } catch (e) { console.error(e); }
+
+            loadState();
+            renderGrid();
+            renderLeaderboard();
+        };
+
+        // --- AUTHENTICATION ---
+        function initiateLogin(id) {
+            currentPlayer = id;
+            const charName = characters.find(c=>c.id===id).name;
+            
+            document.getElementById('charGrid').classList.add('hidden');
+            document.getElementById('passwordArea').classList.remove('hidden');
+            document.getElementById('pwCharName').innerText = charName;
+            document.getElementById('pwInput').value = "";
+            document.getElementById('pwInput').focus();
+            document.getElementById('mainStatus').innerText = "Security Check 🔒";
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('pwInput').value;
+            const charName = characters.find(c=>c.id===currentPlayer).name;
+            const missionData = mainMissions.find(m => m.name === charName);
+
+            if (missionData && input === missionData.pw) {
+                document.getElementById('passwordArea').classList.add('hidden');
+                document.getElementById('gameArea').classList.remove('hidden');
+                document.getElementById('mainStatus').innerText = `Logged in as: ${charName}`;
+                
+                renderMainMissionUI(charName, missionData);
+                updateMissionUI();
+            } else {
+                alert("Wrong Password! 🚫");
+                document.getElementById('pwInput').value = "";
+            }
+        }
+
+        // --- GAME LOGIC ---
+
+        function renderMainMissionUI(myName, myData) {
+            const playerState = gameState[currentPlayer];
+            const isDone = playerState.mainMissionDone;
+
+            const section = document.getElementById('mainMissionDisplay');
+            if (isDone) {
+                section.innerHTML = `
+                    <div class="main-mission-section" style="background:#e3fce3; border-color:#00b894;">
+                        <div class="mm-header" style="color:#00b894">✅ MAIN MISSION COMPLETED</div>
+                        <div class="mm-task">You have completed your task targeting <strong>${myData.target}</strong>.</div>
+                    </div>
+                `;
+            } else {
+                section.innerHTML = `
+                    <div class="main-mission-section">
+                        <div class="mm-header">
+                            ⚠️ YOUR MAIN MISSION
+                            <span style="font-size:0.8em; color:#555">Target: <strong>${myData.target}</strong></span>
+                        </div>
+                        <div class="mm-task">${myData.task}</div>
+                        <button class="btn btn-gold" onclick="completeMainMission('${myData.task}')">🏆 Mark Complete (+10 Pts)</button>
+                    </div>
+                `;
+            }
+        }
+
+        function completeMainMission(taskTitle) {
+            if(!confirm("Are you sure you completed the MAIN MISSION? This is worth 10 points!")) return;
+            
+            gameState[currentPlayer].score += 10;
+            gameState[currentPlayer].mainMissionDone = true;
+            saveState();
+
+            const charName = characters.find(c => c.id === currentPlayer).name;
+            sendToGoogle(charName, "MAIN MISSION: " + taskTitle);
+
+            alert("CONGRATS! 10 Points Added! 🏆");
+            const missionData = mainMissions.find(m => m.name === charName);
+            renderMainMissionUI(charName, missionData);
+            renderLeaderboard();
+        }
+
+        // --- SIDE MISSIONS ---
+
+        function updateMissionUI() {
+            const playerState = gameState[currentPlayer];
+            
+            if (playerState.currentQuest) {
+                document.getElementById('activeMissionUI').classList.remove('hidden');
+                document.getElementById('noMissionUI').classList.add('hidden');
+                document.getElementById('qTitle').innerText = playerState.currentQuest.title;
+                document.getElementById('qDesc').innerText = playerState.currentQuest.desc;
+                document.getElementById('btnDraw').classList.add('hidden');
+                document.getElementById('btnComplete').classList.remove('hidden');
+                document.getElementById('btnSkip').classList.remove('hidden');
+            } else {
+                document.getElementById('activeMissionUI').classList.add('hidden');
+                document.getElementById('noMissionUI').classList.remove('hidden');
+                document.getElementById('btnDraw').classList.remove('hidden');
+                document.getElementById('btnComplete').classList.add('hidden');
+                document.getElementById('btnSkip').classList.add('hidden');
+            }
+        }
+
+        function drawMission() {
+            if(allQuests.length === 0) return alert("Quests still loading...");
+            const rand = allQuests[Math.floor(Math.random() * allQuests.length)];
+            gameState[currentPlayer].currentQuest = rand;
+            saveState();
+            updateMissionUI();
+        }
+
+        function completeMission() {
+            const playerState = gameState[currentPlayer];
+            const charName = characters.find(c => c.id === currentPlayer).name;
+            gameState[currentPlayer].score += 1;
+            const doneQuest = playerState.currentQuest.title;
+            gameState[currentPlayer].currentQuest = null;
+            saveState();
+            sendToGoogle(charName, doneQuest);
+            alert(`Nice work! +1 Point`);
+            updateMissionUI();
+            renderLeaderboard();
+        }
+
+        function skipMission() {
+            if(!confirm("Skip this quest?")) return;
+            gameState[currentPlayer].currentQuest = null;
+            saveState();
+            updateMissionUI();
+        }
+
+        // --- CORE & STATE ---
+
+        function loadState() {
+            const saved = localStorage.getItem('tripQuestData');
+            if (saved) {
+                gameState = JSON.parse(saved);
+                characters.forEach(c => {
+                    if (!gameState[c.id]) gameState[c.id] = { score: 0, currentQuest: null, mainMissionDone: false };
+                });
+            } else {
+                characters.forEach(c => {
+                    gameState[c.id] = { score: 0, currentQuest: null, mainMissionDone: false };
+                });
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('tripQuestData', JSON.stringify(gameState));
+        }
+
+        function sendToGoogle(name, quest) {
+            const formData = new FormData();
+            formData.append(entryName, name);
+            formData.append(entryQuest, quest);
+            fetch(formURL, { method: "POST", mode: "no-cors", body: formData }).catch(e=>{});
+        }
+
+        function goBack() {
+            currentPlayer = null;
+            document.getElementById('passwordArea').classList.add('hidden');
+            document.getElementById('gameArea').classList.add('hidden');
+            document.getElementById('charGrid').classList.remove('hidden');
+            document.getElementById('mainStatus').innerText = "Select your character";
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('charGrid');
+            grid.innerHTML = "";
+            characters.forEach(c => {
+                const score = gameState[c.id] ? gameState[c.id].score : 0;
+                const btn = document.createElement('div');
+                btn.className = "char-btn";
+                btn.onclick = () => initiateLogin(c.id);
+                btn.innerHTML = `
+                    ${score > 0 ? `<div class="char-score">${score}</div>` : ''}
+                    <span class="char-icon">${c.icon}</span>
+                    <span class="char-name">${c.name}</span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function renderLeaderboard() {
+            const list = document.getElementById('lbList');
+            list.innerHTML = "";
+            const sorted = characters.map(c => {
+                return { name: c.name, score: gameState[c.id] ? gameState[c.id].score : 0 };
+            }).sort((a,b) => b.score - a.score);
+
+            sorted.forEach(p => {
+                const row = document.createElement('div');
+                row.className = "lb-row";
+                row.innerHTML = `<span class="lb-name">${p.name}</span><span>${p.score} pts</span>`;
+                list.appendChild(row);
+            });
+        }
+
+        function parseCSV(text) {
+            const rows = text.split('\n').slice(1);
+            rows.forEach(row => {
+                const c = row.split(',');
+                if(c.length >= 2 && c[0].trim()) allQuests.push({ desc: c[0].trim(), title: c[1].trim() });
+            });
+        }
+
+        function hardReset() {
+            if(confirm("Delete all scores and progress?")) {
+                localStorage.removeItem('tripQuestData');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
