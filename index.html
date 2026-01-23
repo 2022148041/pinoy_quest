@@ -139,7 +139,7 @@
             <div id="actionButtons">
                 <button class="btn btn-primary" id="btnDraw" onclick="drawMission()">🎲 Get Random Mission</button>
                 <button class="btn btn-success hidden" id="btnComplete" onclick="completeMission()">✅ Side Mission Complete (+1)</button>
-                <button class="btn btn-outline hidden" id="btnSkip" onclick="skipMission()">🏳️ Skip</button>
+                <button class="btn btn-outline hidden" id="btnSkip" onclick="skipMission()">🏳️ Skip (-1 Pt)</button>
             </div>
             
             <button class="btn btn-outline" style="margin-top:20px; border:none; font-size:0.8em" onclick="goBack()">⬅️ Logout</button>
@@ -321,10 +321,19 @@
         }
 
         function skipMission() {
-            if(!confirm("Skip this quest?")) return;
+            if(!confirm("Skip this quest? It will cost you -1 Point!")) return;
+            
+            // Subtract point
+            gameState[currentPlayer].score -= 1;
+            
+            // Clear quest
             gameState[currentPlayer].currentQuest = null;
+            
             saveState();
             updateMissionUI();
+            renderLeaderboard(); // Update scores immediately
+            
+            alert("Mission Skipped. 1 Point deducted.");
         }
 
         // --- CORE & STATE ---
